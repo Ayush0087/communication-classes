@@ -1,0 +1,312 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using static System.Console;
+using Capgemini.GreatOutdoor.BusinessLayer;
+using Capgemini.GreatOutdoor.Entities;
+using Capgemini.GreatOutdoor.Exceptions;
+using Capgemini.GreatOutdoor.Contracts.BLContracts;
+
+namespace Capgemini.GreatOutdoor.PresentationLayer
+{
+
+    public static class OnlineReturnPresentation
+    {
+
+        /// <summary>
+        /// Menu for Onlinereturn
+        /// </summary>
+        /// <returns></returns>
+        
+        
+            static void Main()
+            {
+                async Task<int> OnlineReturnMenu()
+                {
+                    int choice = -2;
+
+                    do
+                    {
+                        //Menu
+                        WriteLine("\n***************OnlineReturn***********");
+                        WriteLine("1. View OnlineReturns");
+                        WriteLine("2. Add OnlineReturn");
+                        WriteLine("3. Update OnlineReturn");
+                        WriteLine("4. Delete OnlineReturn");
+                        WriteLine("5. Inlitialize OnlineReturn");
+                        WriteLine("-----------------------");
+                        
+                        WriteLine("0. Logout");
+                        WriteLine("-1. Exit");
+                        Write("Choice: ");
+
+                        //Accept and check choice
+                        bool isValidChoice = int.TryParse(ReadLine(), out choice);
+                        if (isValidChoice)
+                        {
+                            switch (choice)
+                            {
+                                case 1: await ViewOnlineReturns(); break;
+                                case 2: await AddOnlineReturn(); break;
+                                case 3: await UpdateOnlineReturn(); break;
+                                case 4: await DeleteOnlineReturn(); break;
+                                //case 5: await InlitializeOnlineReturn();break;
+                               
+                                case 0: break;
+                                case -1: break;
+                                default: WriteLine("Invalid Choice"); break;
+                            }
+                        }
+                        else
+                        {
+                            choice = -2;
+                        }
+                    } while (choice != 0 && choice != -1);
+                    return choice;
+                }
+
+            }
+
+            #region OnlineReturn
+
+            /// <summary>
+            /// Displays list of OnlineReturns.
+            /// </summary>
+            /// <returns></returns>
+            public static async Task ViewOnlineReturns()
+            {
+                try
+                {
+                    using (IOnlineReturnBL onlineReturnBL = new OnlineReturnBL())
+                    {
+                        //Get and display list of OnlineReturn.
+                        List<OnlineReturn> onlineReturns = await onlineReturnBL.GetAllOnlineReturnsBL();
+                        WriteLine("OnlineReturns:");
+                        if (onlineReturns != null && onlineReturns?.Count > 0)
+                        {
+                            WriteLine("#\tPurpose\tOrderID\tProductID\tQuantityOfReturn\tModified");
+                            int serial = 0;
+                            foreach (var onlineReturn in onlineReturns)
+                            {
+                                serial++;
+                                WriteLine($"{serial}\t{onlineReturn.Purpose}\t{onlineReturn.OrderID}\t{onlineReturn.ProductID}\t{onlineReturn.QuantityOfReturn}\t{onlineReturn.CreationDateTime}\t{onlineReturn.LastModifiedDateTime}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ExceptionLogger.LogException(ex);
+                    WriteLine(ex.Message);
+                }
+            }
+
+            /// <summary>
+            /// Adds OnlineReturn.
+            /// </summary>
+            /// <returns></returns>
+            public static async Task AddOnlineReturn()
+            {
+                try
+                {
+                    //Read inputs
+                    OnlineReturn onlineReturn = new OnlineReturn();
+                    //WriteLine("PurposeOfReturn: ");
+                    //onlineReturn.Purpose =ReadLine();
+                   // Write("OrderID: ");
+                    //onlineReturn.OrderID = ReadLine();
+                    //Write("ProductID: ");
+                    //onlineReturn.ProductID = ReadLine();
+                    Write("QuantityOfReturn: ");
+                    onlineReturn.QuantityOfReturn = Convert.ToInt32(ReadLine());
+                   
+                    //Invoke AddOnlineReturnBL method to add
+                    using (IOnlineReturnBL onlineReturnBL = new OnlineReturnBL())
+                    {
+                        bool isAdded = await onlineReturnBL.AddOnlineReturnBL(onlineReturn);
+                        if (isAdded)
+                        {
+                            WriteLine("OnlineReturn Added");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ExceptionLogger.LogException(ex);
+                    WriteLine(ex.Message);
+                }
+            }
+
+            /// <summary>
+            /// Updates OnlineReturn.
+            /// </summary>
+            /// <returns></returns>
+            public static async Task UpdateOnlineReturn()
+            {
+                try
+                {
+                    using (IOnlineReturnBL onlineReturnsBL = new OnlineReturnBL())
+                    {
+                        //Read Sl.No
+                        Write("OnlineReturn #: ");
+                        bool isNumberValid = int.TryParse(ReadLine(), out int serial);
+                        if (isNumberValid)
+                        {
+                            serial--;
+                            List<OnlineReturn> onlineReturns = await onlineReturnsBL.GetAllOnlineReturnsBL();
+                            if (serial <= onlineReturns.Count - 1)
+                            {
+                                //Read inputs
+                                OnlineReturn onlineReturn = onlineReturns[serial];
+                                Write("PurposeOfReturn: ");
+                                //onlineReturn.PurposeOfReturn = ReadLine();
+                                Write("OrderID: ");
+                                //onlineReturn.OrderID = ReadLine();
+                                Write("ProductID: ");
+                                //onlineReturn.ProductID = ReadLine();
+                                Write("QuantityOfReturn: ");
+                                onlineReturn.QuantityOfReturn = Convert.ToInt32(ReadLine());
+                               
+
+                                //Invoke UpdateOnlineReturnBL method to update
+                                bool isUpdated = await onlineReturnsBL.UpdateOnlineReturnBL(onlineReturn);
+                                if (isUpdated)
+                                {
+                                    WriteLine("OnlineReturn Updated");
+                                }
+                            }
+                            else
+                            {
+                                WriteLine($"Invalid OnlineReturn #.\nPlease enter a number between 1 to {onlineReturns.Count}");
+                            }
+                        }
+                        else
+                        {
+                            WriteLine($"Invalid number.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ExceptionLogger.LogException(ex);
+                    WriteLine(ex.Message);
+                }
+            }
+
+            /// <summary>
+            /// Delete OnlineReturn.
+            /// </summary>
+            /// <returns></returns>
+            public static async Task DeleteOnlineReturn()
+            {
+                try
+                {
+                    using (IOnlineReturnBL onlineReturnBL = new OnlineReturnBL())
+                    {
+                        //Read Sl.No
+                        Write("OnlineReturn #: ");
+                        bool isNumberValid = int.TryParse(ReadLine(), out int serial);
+                        if (isNumberValid)
+                        {
+                            serial--;
+                            List<OnlineReturn> onlineReturns = await onlineReturnBL.GetAllOnlineReturnsBL();
+                            if (serial <= onlineReturns.Count - 1)
+                            {
+                                //Confirmation
+                                OnlineReturn onlineReturn = onlineReturns[serial];
+                                Write("Are you sure? (Y/N): ");
+                                string confirmation = ReadLine();
+
+                                if (confirmation.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    //Invoke DeleteOnlineReturnBL method to delete
+                                    bool isDeleted = await onlineReturnBL.DeleteOnlineReturnBL(onlineReturn.OnlineReturnID);
+                                    if (isDeleted)
+                                    {
+                                        WriteLine("OnlineReturn Deleted");
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                WriteLine($"Invalid OnlineReturn #.\nPlease enter a number between 1 to {onlineReturns.Count}");
+                            }
+                        }
+                        else
+                        {
+                            WriteLine($"Invalid number.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    ExceptionLogger.LogException(ex);
+                    WriteLine(ex.Message);
+                }
+            }
+
+        /// <summary>
+        /// Initialize OnlineReturn.
+        /// </summary>
+        /// <returns></returns>
+
+        //public static async Task InlitializeOnlineReturn(Guid RetailerID)
+        //{
+        //    try
+        //    {
+        //        using (RetailerBL retailerBL = new RetailerBL())
+        //        {
+        //            //Read Sl.No
+        //            Write("OnlineReturn #: ");
+        //            bool isNumberValid = int.TryParse(ReadLine(), out int serial);
+        //            if (isNumberValid)
+        //            {
+        //                serial--;
+        //                List<OnlineReturn> onlineReturns = await retailerBL.GetAllOnlineReturnsBL();
+        //                if (serial <= onlineReturns.Count - 1)
+        //                {
+        //                    //Confirmation
+        //                    OnlineReturn onlineReturn = onlineReturns[serial];
+        //                    Write("Are you sure? (Y/N): ");
+        //                    string confirmation = ReadLine();
+
+        //                    if (confirmation.Equals("Y", StringComparison.OrdinalIgnoreCase))
+        //                    {
+        //                        //Invoke DeleteOnlineReturnBL method to delete
+        //                        bool isDeleted = await retailerBL.DeleteOnlineReturnBL(onlineReturn.OnlineReturnID);
+        //                        if (isDeleted)
+        //                        {
+        //                            WriteLine("OnlineReturn Deleted");
+        //                        }
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    WriteLine($"Invalid OnlineReturn #.\nPlease enter a number between 1 to {onlineReturns.Count}");
+        //                }
+        //            }
+        //            else
+        //            {
+        //                WriteLine($"Invalid number.");
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        ExceptionLogger.LogException(ex);
+        //        WriteLine(ex.Message);
+        //    }
+        //}
+
+                   #endregion
+
+
+
+
+
+
+    }
+    
+}
+
+
